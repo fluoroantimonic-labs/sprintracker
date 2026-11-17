@@ -504,7 +504,7 @@ $("#abandon").onclick=()=>ask({title:"ABANDON THIS WORLD?",body:"<p>All progress
   onOk:()=>{S=fresh();save();$("#log").value="";$("#jsonBox").value="";lastExp();toast("World erased","Creative mode again.");render();renderMap()}});
 
 /* ---------- cloud sync: Firebase Realtime Database over plain REST ---------- */
-const CLOUD_URL="https://sprint-tracker-7b5d8-default-rtdb.asia-southeast1.firebasedatabase.app",CLOUD_CODE=""; /* optional: fill these in before deploying to skip the setup fields */
+const CLOUD_URL="",CLOUD_CODE=""; /* optional: fill these in before deploying to skip the setup fields */
 let C={url:CLOUD_URL,code:CLOUD_CODE};
 try{Object.assign(C,JSON.parse(localStorage.getItem("mc-cloud")||"{}"))}catch(e){}
 const cOn=()=>!!(C.url&&C.code);
