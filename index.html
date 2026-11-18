@@ -149,7 +149,7 @@ summary{cursor:pointer}
   <h2 class="px">12-WEEK QUEST MAP</h2>
   <p class="dim" style="margin-bottom:.7rem" id="mapNote"></p>
   <div class="tw"><table>
-    <thead><tr><th>WK</th><th>CALCULUS I</th><th>PHY 110</th><th>BEE</th></tr></thead>
+    <thead><tr><th>WK</th><th>CALCULUS I</th><th>APPLIED PHYSICS</th><th>BASIC ELECTRIC CIRCUITS</th></tr></thead>
     <tbody id="weekBody"></tbody>
   </table></div>
 </section>
@@ -222,12 +222,12 @@ R.setProperty("--h1",heart("#ff1313"));R.setProperty("--h0",heart("#3b3b3b"));
 
 /* ---------- data ---------- */
 const SUBJ={
-  calc:{n:"Calculus I",c:"var(--calc)",b:"#55aaff",i:0},
-  phys:{n:"Physics 110",c:"var(--phys)",b:"#d09aff",i:1},
-  bee:{n:"Basic electrical engineering",c:"var(--bee)",b:"#ffaa00",i:2},
-  mix:{n:"Mixed past papers",c:"var(--mix)",b:"#55ffff",i:-1},
-  buf:{n:"Buffer",c:"var(--mix)",b:"#55ffff",i:-1},
-  rev:{n:"Review and plan",c:"var(--mix)",b:"#55ffff",i:-1}
+  calc:{n:"Calculus I",k:"Calculus",c:"var(--calc)",b:"#55aaff",i:0},
+  phys:{n:"Applied Physics",k:"Physics",c:"var(--phys)",b:"#d09aff",i:1},
+  bee:{n:"Basic Electric Circuits",k:"BEE",c:"var(--bee)",b:"#ffaa00",i:2},
+  mix:{n:"Mixed past papers",k:"Mixed",c:"var(--mix)",b:"#55ffff",i:-1},
+  buf:{n:"Buffer",k:"Buffer",c:"var(--mix)",b:"#55ffff",i:-1},
+  rev:{n:"Review and plan",k:"Review",c:"var(--mix)",b:"#55ffff",i:-1}
 };
 const TASK={
   calc:["Blank-page recall of the last session (3 min), then core concepts, active lecture or formulas.","2–3 practice problems on paper before you open any notes."],
@@ -241,18 +241,18 @@ const PLAN={1:["calc","phys"],2:["calc","bee"],3:["phys","calc"],4:["phys","bee"
 const NOTE={1:"Heavy math first, physical waves second.",2:"Derivatives first, DC/AC circuits second.",3:"Swap the order: physics gets the fresh brain.",4:"Electromagnetism and lasers meet transformers and motors.",5:"BEE gets the fresh brain, then the mixed-paper sweep.",6:"Full day from an early start: all three subjects, two sprints each.",0:"Mixed paper, then error-log review and next-week preview."};
 const ICON={"1A":"📖","1B":"✏️","2A":"⚙️","2B":"📝",r1:"💧",r2:"💧",air:"🍖",shut:"🛏️"};
 const WEEKS=[
-["Algebra/trig diagnostic, functions, limits intro","Unit 1: SHM, free and damped oscillation, pendulums","Ch 1 intro, Ch 2 start: circuit elements, Ohm, KCL/KVL"],
-["Limits deep dive, continuity, squeeze theorem","Unit 2: wave motion, stretched strings, sonometer","Ch 2: mesh/nodal analysis, source conversion"],
-["Derivative foundations: definition, tangent, basic rules","Unit 3: acoustics, reverberation, Sabine, ultrasound","Ch 2: network theorems (Thevenin, Norton, superposition)"],
-["Derivative rules: chain, product, quotient, implicit","Unit 4: photonics, lasers, population inversion","Ch 2: max power transfer, star-delta transforms"],
-["Derivative apps: rates of change, motion, linearization","Unit 4 cont.: fiber optics, NA, acceptance angle, diffraction","Ch 3: single-phase AC, sinusoids, phasors, RMS"],
-["Derivative apps: optimization, MVT, curve sketching","Unit 5: capacitors, RC charge/discharge, dielectrics","Ch 3: RL/RC/RLC steady state, power triangle, PF"],
-["Integration foundations: Riemann sums, definite integrals","Unit 6: electromagnetism, LC/LCR oscillation, resonance","Ch 3: series/parallel resonance, bandwidth, Q factor"],
-["Fundamental theorem of calculus, accumulation, net change","Unit 6 cont.: Maxwell’s equations, EM waves in free space","Ch 4: polyphase AC, star/delta, line vs phase"],
-["u-substitution, area between curves","Unit 7: quantum mechanics, de Broglie, operators","Ch 4 cont.: two-wattmeter method, 3-phase power"],
-["Volumes (disk/washer/shell), engineering work applications","Unit 7 cont.: Schrödinger equation, infinite well","Ch 5: magnetic circuits, transformers (ideal and practical)"],
-["Mixed problem solving, cumulative timed sets","Unit 8: thermodynamics, laws, engines, COP","Ch 5 cont.: OC/SC tests, efficiency, DC machines"],
-["Final consolidation: weak-topic repair, full mock exams","Unit 8 cont.: heat transfer, full-course past papers","Ch 5 cont.: induction/synchronous motors, per-unit, past papers"]
+["Unit I: limits, continuity, differentiability, higher-order derivatives (Leibnitz)","Unit I: free, damped and forced oscillation, compound and torsion pendulum","Unit I: energy sources, generation/transmission/distribution, charge, EMF, Ohm’s law, resistivity and temperature coefficient"],
+["Unit II: Rolle’s and Lagrange’s theorems, Taylor and Maclaurin series","Unit II: wave motion, stretched string, standing waves, sonometer","Unit II: circuit concepts, independent/dependent sources, Kirchhoff’s laws, dividers, series/parallel, star-delta"],
+["Unit II: asymptotes (up to four degrees), curve tracing, curvature","Unit III: acoustics of buildings, Sabine equation, ultrasound","Unit II: source transformation, nodal analysis, mesh analysis (with dependent sources)"],
+["Unit III: definite and improper integrals, reduction formula, Beta and Gamma","Unit IV: lasers (He-Ne, semiconductor) and fiber optics (acceptance angle, NA)","Unit III: superposition, reciprocity, Thevenin, Norton, max power transfer, Millman, Tellegen"],
+["Unit IV: area, arc length, surface and volume of revolution","Unit V: capacitors, charging and discharging, dielectrics, polarization","Unit IV: AC waveforms and terms, average and RMS values, phasors (complex, polar, exponential)"],
+["Units V and VI: partial derivatives, Euler’s theorem, extrema, Lagrange multipliers","Unit VI: LC/LCR oscillation, resonance, Q factor, Maxwell’s equations, EM waves","Unit V: Ampere’s law, B-H curve, reluctance and mmf, air-gap circuits, inductance, coupled coils, R-L circuits"],
+["Unit VII: first-order ODEs (separable, exact, linear, Bernoulli, Riccati), modeling","Unit VII: de Broglie waves, wave function, Schrödinger equation, infinite well","Unit VI: electric fields, capacitance, charging, series/parallel capacitors, capacitive reactance, R-C circuits"],
+["Unit VIII: second-order homogeneous ODEs, Euler-Cauchy, Wronskian","Unit VIII: thermodynamic properties and processes, first law, closed systems","Unit VII: series/parallel RLC steady state, real/reactive/apparent power, power factor and its improvement"],
+["Unit VIII: non-homogeneous ODEs, undetermined coefficients, variation of parameters","Unit VIII: second law, heat engines, COP, conduction, radiation, black bodies","Unit VII: AC mesh/nodal, star-delta and theorems in AC, series/parallel resonance, bandwidth, Q factor"],
+["Revision: Units I to III, timed problem sets and tutorials","Revision: Units I to IV, numericals and past papers","Unit VIII: three-phase generation, phase sequence, star/delta, line vs phase, balanced/unbalanced loads, power"],
+["Revision: Units IV to VIII, timed problem sets","Revision: Units V to VIII, numericals and past papers","Revision: Units I to IV, timed problem sets and tutorials"],
+["Full mock exams and weak-topic repair","Full mock exams and weak-topic repair","Revision: Units V to VIII and full mock exams"]
 ];
 
 /* ---------- state + storage ---------- */
@@ -442,7 +442,7 @@ $("#lockBtn").onclick=()=>ask({
 $("#weekGrid").innerHTML=[1,2,3,4,5,6,0].map(n=>{
   const p=PLAN[n];
   return '<div class="day slot'+(n===new Date().getDay()?" today":"")+'"><b>'+DAYS[n].toUpperCase().slice(0,3)+(p?"":": OFF")+'</b>'+
-    (p?p.filter(Boolean).map((s,i)=>'<span class="tag" style="--c:'+SUBJ[s].c+'">'+(i+1)+'. '+SUBJ[s].n.split(" ")[0]+'</span>').join(""):"")+'<p>'+NOTE[n]+'</p></div>';
+    (p?p.filter(Boolean).map((s,i)=>'<span class="tag" style="--c:'+SUBJ[s].c+'">'+(i+1)+'. '+SUBJ[s].k+'</span>').join(""):"")+'<p>'+NOTE[n]+'</p></div>';
 }).join("");
 $("#weekBody").innerHTML=WEEKS.map((w,i)=>'<tr data-w="'+(i+1)+'"><td class="wk">'+pad(i+1)+'</td>'+
   ["c1","c2","c3"].map((c,j)=>'<td class="'+c+'"><label><input type="checkbox" id="w'+(i+1)+"cpb"[j]+'"><span>'+w[j]+'</span></label></td>').join("")+'</tr>').join("");
