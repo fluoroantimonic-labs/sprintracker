@@ -135,7 +135,7 @@ summary{cursor:pointer}
     <div class="clock" id="clock">--:--</div>
     <div class="xp"><i id="barFill"></i></div>
     <div class="ctl" style="justify-content:center"><button class="btn g" id="bMain">START</button></div>
-    <div class="tl" style="margin:.7rem 0 0;font-size:.9rem">Check in within 10 minutes of the scheduled start or the session is marked missed. No pause, no skip.</div>
+    <div class="tl" style="margin:.7rem 0 0;font-size:.9rem">Do every session in order, any time today. Anything unfinished is marked missed when the day ends. No pause, no skip.</div>
   </div>
   <div class="rows" id="schedule" style="margin-top:.9rem"></div>
 </section>
@@ -291,12 +291,11 @@ function ask(o){
 }
 
 /* ---------- today's plan (fixed clock times) ---------- */
-const GRACE=10;
 const minOf=t=>{const a=String(t).split(":").map(Number);return a[0]*60+a[1]};
 const nowMin=()=>{const n=new Date();return n.getHours()*60+n.getMinutes()+n.getSeconds()/60};
 const dayMs=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x.getTime()};
 const isCheck=b=>b.kind==="sprint"||b.kind==="shut";
-const pre=(b,k)=>k===S.start&&S.lockMin!=null&&b.at+GRACE<S.lockMin;
+const pre=()=>false; /* sessions can be done any time on the day, nothing is skipped at lock-in */
 const icon=b=>b.kind==="sprint"?(b.id[1]==="A"?"📖":"✏️"):b.id.startsWith("air")?"🍖":b.id==="shut"?"🛏️":b.id==="wake"?"⏰":"💧";
 function buildDay(date){
   const wd=date.getDay(),we=wd===0||wd===6,plan=PLAN[wd],pe=S.diff==="peaceful";
@@ -319,20 +318,20 @@ function buildDay(date){
   return{L,end:t,plan,we};
 }
 function pending(d){
-  const k=todayKey(),nm=nowMin();
-  return d.L.find(b=>nm<b.end&&!(isCheck(b)&&(S.done[k+"|"+b.id]||S.miss[k+"|"+b.id]||pre(b,k))))||null;
+  const k=todayKey();
+  return d.L.find(b=>!S.done[k+"|"+b.id])||null;
 }
-/* any session whose check-in window passed is marked missed, including whole days you never opened */
+/* unfinished sessions are marked missed only once their day is over, including days you never opened */
 function sweep(){
   if(!S.locked) return;
-  const nm=nowMin(),tk=todayKey();let ch=false;
-  for(const d=new Date(S.start+"T00:00");iso(d)<=tk;d.setDate(d.getDate()+1)){
+  const tk=todayKey();let ch=false;
+  for(const d=new Date(S.start+"T00:00");iso(d)<tk;d.setDate(d.getDate()+1)){
     const k=iso(d);
     buildDay(d).L.forEach(b=>{
-      if(!isCheck(b)||pre(b,k)) return;
+      if(!isCheck(b)) return;
       const key=k+"|"+b.id;
       if(S.done[key]||S.miss[key]||(S.run&&S.run.date===k&&S.run.id===b.id)) return;
-      if(k<tk||nm>b.at+GRACE){S.miss[key]=1;ch=true}
+      S.miss[key]=1;ch=true;
     });
   }
   if(ch){save();render()}
@@ -358,21 +357,16 @@ function render(){
   $("#hearts").title=sk+" day streak";
   $("#runInfo").textContent=S.locked?"Day "+dayN()+" of 84, week "+curWeek()+", "+(S.diff==="peaceful"?"Peaceful":"Hardcore")+". Cleared "+Object.keys(S.done).length+", missed "+Object.keys(S.miss).length+".":"Creative mode: preview only";
   $("#lockBtn").hidden=S.locked;
-  $("#lockNote").textContent=S.locked?"Locked in since "+new Date(S.start+"T00:00").toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"})+". Start times are fixed: weekdays "+t.wd+", weekends "+t.we+".":"Sign the oath to make today Day 1 and fix your start times.";
+  $("#lockNote").textContent=S.locked?"Locked in since "+new Date(S.start+"T00:00").toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"})+". Target start times are fixed: weekdays "+t.wd+", weekends "+t.we+".":"Sign the oath to make today Day 1 and fix your start times.";
   $("#modeTag").textContent=DAYS[new Date().getDay()];
   $("#dayTags").innerHTML=d.plan.map((s,i)=>'<span class="tag" style="--c:'+SUBJ[s].c+'">Shift '+(i+1)+': '+SUBJ[s].n+'</span>').join("");
   box.innerHTML=d.L.map(b=>{
-    const key=k+"|"+b.id;let cls,st;
-    if(isCheck(b)){
-      if(S.done[key]){cls="done";st='<div class="st ok">✔ DONE</div>'}
-      else if(S.miss[key]){cls="miss";st='<div class="st" style="color:var(--red)">✘ MISSED</div>'}
-      else if(S.run&&S.run.date===k&&S.run.id===b.id){cls="cur";st='<div class="st">IN SESSION</div>'}
-      else if(S.locked&&pre(b,k)){cls="lock";st='<div class="st dim">BEFORE LOCK-IN</div>'}
-      else if(S.locked&&nm>=b.at&&nm<=b.at+GRACE){cls="cur";st='<div class="st">CHECK IN NOW</div>'}
-      else{cls="lock";st='<div class="st dim">🔒 OPENS '+hm(b.at)+'</div>'}
-    }else if(S.locked&&nm>=b.end){cls="done";st='<div class="st ok">✔ PASSED</div>'}
-    else if(S.locked&&nm>=b.at){cls="cur";st='<div class="st">NOW</div>'}
-    else{cls="lock";st='<div class="st dim">AT '+hm(b.at)+'</div>'}
+    const key=k+"|"+b.id,nx=pending(d);let cls,st;
+    if(S.done[key]){cls="done";st='<div class="st ok">✔ DONE</div>'}
+    else if(S.miss[key]){cls="miss";st='<div class="st" style="color:var(--red)">✘ MISSED</div>'}
+    else if(S.run&&S.run.date===k&&S.run.id===b.id){cls="cur";st='<div class="st">IN SESSION</div>'}
+    else if(S.locked&&nx&&nx.id===b.id){cls="cur";st='<div class="st">UP NEXT</div>'}
+    else{cls="lock";st='<div class="st dim">🔒 LOCKED</div>'}
     return '<div class="row slot '+cls+'" style="--c:'+b.c+'"><div class="ic">'+icon(b)+'</div>'+
       '<div><strong>'+b.title+'</strong><span>'+b.task+'</span>'+(b.topic?'<em>This week: '+b.topic+'</em>':"")+'</div>'+
       '<div class="when">'+hm(b.at)+'<br>'+b.min+' min</div>'+st+'</div>';
@@ -384,7 +378,7 @@ function render(){
 }
 function fmt(s){s=Math.max(0,Math.ceil(s));const h=Math.floor(s/3600);return (h?pad(h)+":":"")+pad(Math.floor(s%3600/60))+":"+pad(s%60)}
 function paint(){
-  const d=buildDay(new Date()),b=$("#bMain"),nm=nowMin(),r=S.run;
+  const d=buildDay(new Date()),b=$("#bMain"),r=S.run;
   b.hidden=true;
   if(r){
     const left=(r.end-Date.now())/1000,blk=d.L.find(x=>x.id===r.id&&r.date===todayKey());
@@ -394,20 +388,13 @@ function paint(){
   }
   document.title="Dual-track sprint: Minecraft edition";
   $("#barFill").style.width="0%";$("#clock").textContent="--:--";
-  if(!S.locked){$("#tLabel").textContent="Creative mode. Lock in to unlock check-ins.";b.hidden=false;b.disabled=true;b.textContent="LOCKED";return}
+  if(!S.locked){$("#tLabel").textContent="Creative mode. Lock in to unlock the timer.";b.hidden=false;b.disabled=true;b.textContent="LOCKED";return}
   const p=pending(d);
-  if(!p){$("#tLabel").textContent="Every session for today is resolved.";return}
+  if(!p){$("#tLabel").textContent="Every session for today is done. Nice work.";return}
   $("#timer").style.setProperty("--a",p.b);
-  if(nm<p.at){
-    $("#tLabel").textContent="Next: "+p.title+" at "+hm(p.at);$("#clock").textContent=fmt((p.at-nm)*60);
-    if(isCheck(p)){b.hidden=false;b.disabled=true;b.textContent="OPENS AT "+hm(p.at)}
-  }else if(!isCheck(p)){
-    $("#tLabel").textContent="Rest: "+p.title;$("#clock").textContent=fmt((p.end-nm)*60);
-    $("#barFill").style.width=((nm-p.at)/p.min*100)+"%";
-  }else{
-    $("#tLabel").textContent="Check in now. The window closes in:";$("#clock").textContent=fmt((p.at+GRACE-nm)*60);
-    b.hidden=false;b.disabled=false;b.textContent="CHECK IN: "+p.title.split(":")[0].toUpperCase();
-  }
+  $("#tLabel").textContent="Up next: "+p.title+" ("+p.min+" min). Target time "+hm(p.at)+".";
+  $("#clock").textContent=fmt(p.min*60);
+  b.hidden=false;b.disabled=false;b.textContent="START "+(p.kind==="rest"?p.title:p.title.split(":")[0]).toUpperCase();
 }
 function finish(){
   const r=S.run;if(!r) return;
@@ -416,9 +403,8 @@ function finish(){
 }
 $("#bMain").onclick=()=>{
   if(!S.locked||S.run) return;
-  const p=pending(buildDay(new Date())),nm=nowMin();
-  if(!p||!isCheck(p)||nm<p.at||nm>p.at+GRACE) return;
-  S.run={id:p.id,title:p.title,date:todayKey(),total:p.min*60,end:dayMs(new Date())+p.end*6e4};
+  const p=pending(buildDay(new Date()));if(!p) return;
+  S.run={id:p.id,title:p.title,date:todayKey(),total:p.min*60,end:Date.now()+p.min*6e4};
   save();sfx("ok");render();
 };
 let lastM=-1;
@@ -434,7 +420,7 @@ $("#lockBtn").onclick=()=>ask({
   title:"THE OATH OF THE LOCKED RUN",
   body:'<p>Read this, then type <b>I AGREE</b>.</p><ol>'+
     '<li>Today, <b>'+new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})+'</b>, becomes Day 1 of my 12-week run. I can’t change it.</li>'+
-    '<li>Session times are fixed once I sign. I must check in within 10 minutes of a session’s start. Otherwise it is marked missed automatically, and so is every session on a day I never open the app.</li>'+
+    '<li>Start times are targets, and they are fixed once I sign. I can do each session any time that day, in order. A session I haven’t finished when the day ends is marked missed automatically, and so is every session on a day I never open the app.</li>'+
     '<li>I can’t skip, pause or reset a session.</li>'+
     '<li>I study only the current track during its sprint and seal it when it ends.</li>'+
     '<li>Weekends are full days with an early start. The rest of the day is mine once shutdown is done.</li>'+
@@ -448,7 +434,7 @@ $("#lockBtn").onclick=()=>ask({
     const we=$("#mWe").value||DEFT.we;
     S=fresh();S.locked=true;S.start=todayKey();S.lockMin=Math.floor(nowMin());S.diff=$("#mDiff").value;
     S.times={wd:$("#mWd").value||DEFT.wd,we:we.length>=4&&minOf(we)>=60?we:DEFT.we};
-    S.log=$("#log").value;save();sfx("up");toast("Lock-in complete","Day 1 starts now. Sessions earlier today are skipped.");render();renderMap();
+    S.log=$("#log").value;save();sfx("up");toast("Lock-in complete","Day 1 starts now. Do today’s sessions any time before midnight.");render();renderMap();
   }
 });
 
