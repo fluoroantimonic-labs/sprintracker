@@ -97,6 +97,13 @@ select,input[type=time]{font:inherit;padding:.25rem .4rem;border:3px solid #000;
 .cloud{display:grid;gap:.5rem;margin:.2rem 0 .9rem;padding:.8rem;border:3px solid #000;background:var(--slot)}
 .cloud input{width:100%;padding:.5rem;font:400 1rem var(--sans);background:#fff;color:#222;border:3px solid #000}
 summary{cursor:pointer}
+.topics{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:.7rem}
+.tcol{padding:.7rem;align-content:start}
+.tcol h3{font:400 .62rem/1.6 var(--px);margin-bottom:.5rem;color:var(--c)}
+.tcol ol{list-style:none;display:grid;gap:.3rem;font-size:.92rem}
+.tcol li{display:grid;grid-template-columns:18px 1fr;gap:.3rem;line-height:1.25;padding:.15rem}
+.tcol li.d{opacity:.55;text-decoration:line-through}
+.tcol li.c{font-weight:600;background:var(--panel);outline:3px solid #fff;outline-offset:-1px}
 @media (max-width:640px){.row{grid-template-columns:52px 1fr}.when,.st{grid-column:1/-1;text-align:left}.btn{width:100%}.ctl .btn{flex:1}}
 @media (prefers-reduced-motion:reduce){.xp i,.toast{transition:none}}
 </style>
@@ -141,17 +148,14 @@ summary{cursor:pointer}
 </section>
 
 <section class="mc">
-  <h2 class="px">WEEKLY PAIRING</h2>
+  <h2 class="px">SUBJECTS BY DAY</h2>
   <div class="week" id="weekGrid"></div>
 </section>
 
 <section class="mc">
-  <h2 class="px">12-WEEK QUEST MAP</h2>
+  <h2 class="px">QUEST MAP</h2>
   <p class="dim" style="margin-bottom:.7rem" id="mapNote"></p>
-  <div class="tw"><table>
-    <thead><tr><th>WK</th><th>CALCULUS I</th><th>APPLIED PHYSICS</th><th>BASIC ELECTRIC CIRCUITS</th></tr></thead>
-    <tbody id="weekBody"></tbody>
-  </table></div>
+  <div class="topics" id="topics"></div>
 </section>
 
 <section class="mc" id="save">
@@ -185,7 +189,7 @@ summary{cursor:pointer}
     <li><b>Seal the airlock.</b> When a shift ends, close its tabs. No calculus during physics, no BEE during calculus.</li>
     <li><b>Open every A sprint cold.</b> Write what you remember from last time for 3 minutes, then check it.</li>
     <li><b>Practice on paper.</b> Phone in another room. Notes closed until you’re stuck for 5 minutes.</li>
-    <li><b>Weekends are full days.</b> Wake at 04:00, start early, and the rest of the day is yours once the shutdown ritual is done.</li>
+    <li><b>Saturday is the long day.</b> Wake at 04:00 and start right away. Friday is a college day, so it is a rest day. Sunday is a normal study day at your weekday start time.</li>
   </ol>
 </section>
 </div>
@@ -237,23 +241,79 @@ const TASK={
   buf:["Finish the chapter that didn’t break this week.","Practice problems on that chapter."],
   rev:["Reread the whole error log. Redo the five worst misses on paper.","Preview next week’s three topics. Write one question per topic you can’t answer yet."]
 };
-const PLAN={1:["calc","phys"],2:["calc","bee"],3:["phys","calc"],4:["phys","bee"],5:["bee","mix"],6:["calc","phys","bee"],0:["mix","rev"]};
-const NOTE={1:"Heavy math first, physical waves second.",2:"Derivatives first, DC/AC circuits second.",3:"Swap the order: physics gets the fresh brain.",4:"Electromagnetism and lasers meet transformers and motors.",5:"BEE gets the fresh brain, then the mixed-paper sweep.",6:"Full day from an early start: all three subjects, two sprints each.",0:"Mixed paper, then error-log review and next-week preview."};
+const PLAN={1:["calc","phys"],2:["calc","bee"],3:["phys","calc"],4:["phys","bee"],5:null,6:["calc","phys","bee"],0:["bee","mix"]};
+const NOTE={1:"Heavy math first, physical waves second.",2:"Derivatives first, DC/AC circuits second.",3:"Swap the order: physics gets the fresh brain.",4:"Electromagnetism and lasers meet transformers and motors.",5:"College all day. Rest day: no sessions, your streak is safe.",6:"The long day: all three subjects from an early start.",0:"Normal study day: BEE first, then a timed mixed paper."};
 const ICON={"1A":"📖","1B":"✏️","2A":"⚙️","2B":"📝",r1:"💧",r2:"💧",air:"🍖",shut:"🛏️"};
-const WEEKS=[
-["Unit I: limits, continuity, differentiability, higher-order derivatives (Leibnitz)","Unit I: free, damped and forced oscillation, compound and torsion pendulum","Unit I: energy sources, generation/transmission/distribution, charge, EMF, Ohm’s law, resistivity and temperature coefficient"],
-["Unit II: Rolle’s and Lagrange’s theorems, Taylor and Maclaurin series","Unit II: wave motion, stretched string, standing waves, sonometer","Unit II: circuit concepts, independent/dependent sources, Kirchhoff’s laws, dividers, series/parallel, star-delta"],
-["Unit II: asymptotes (up to four degrees), curve tracing, curvature","Unit III: acoustics of buildings, Sabine equation, ultrasound","Unit II: source transformation, nodal analysis, mesh analysis (with dependent sources)"],
-["Unit III: definite and improper integrals, reduction formula, Beta and Gamma","Unit IV: lasers (He-Ne, semiconductor) and fiber optics (acceptance angle, NA)","Unit III: superposition, reciprocity, Thevenin, Norton, max power transfer, Millman, Tellegen"],
-["Unit IV: area, arc length, surface and volume of revolution","Unit V: capacitors, charging and discharging, dielectrics, polarization","Unit IV: AC waveforms and terms, average and RMS values, phasors (complex, polar, exponential)"],
-["Units V and VI: partial derivatives, Euler’s theorem, extrema, Lagrange multipliers","Unit VI: LC/LCR oscillation, resonance, Q factor, Maxwell’s equations, EM waves","Unit V: Ampere’s law, B-H curve, reluctance and mmf, air-gap circuits, inductance, coupled coils, R-L circuits"],
-["Unit VII: first-order ODEs (separable, exact, linear, Bernoulli, Riccati), modeling","Unit VII: de Broglie waves, wave function, Schrödinger equation, infinite well","Unit VI: electric fields, capacitance, charging, series/parallel capacitors, capacitive reactance, R-C circuits"],
-["Unit VIII: second-order homogeneous ODEs, Euler-Cauchy, Wronskian","Unit VIII: thermodynamic properties and processes, first law, closed systems","Unit VII: series/parallel RLC steady state, real/reactive/apparent power, power factor and its improvement"],
-["Unit VIII: non-homogeneous ODEs, undetermined coefficients, variation of parameters","Unit VIII: second law, heat engines, COP, conduction, radiation, black bodies","Unit VII: AC mesh/nodal, star-delta and theorems in AC, series/parallel resonance, bandwidth, Q factor"],
-["Revision: Units I to III, timed problem sets and tutorials","Revision: Units I to IV, numericals and past papers","Unit VIII: three-phase generation, phase sequence, star/delta, line vs phase, balanced/unbalanced loads, power"],
-["Revision: Units IV to VIII, timed problem sets","Revision: Units V to VIII, numericals and past papers","Revision: Units I to IV, timed problem sets and tutorials"],
-["Full mock exams and weak-topic repair","Full mock exams and weak-topic repair","Revision: Units V to VIII and full mock exams"]
-];
+const TPD=2; /* study days per topic */
+const TOPICS={
+calc:[
+"Unit I: limits, continuity and differentiability",
+"Unit I: higher-order derivatives and Leibnitz’s theorem",
+"Unit II: Rolle’s and Lagrange’s mean value theorems",
+"Unit II: Taylor’s and Maclaurin’s series",
+"Unit II: asymptotes to Cartesian curves (up to four degrees)",
+"Unit II: curve tracing (Cartesian and parametric) and curvature",
+"Unit III: indefinite integrals, fundamental theorem, definite integrals",
+"Unit III: improper integrals, comparison test, reduction formula, Beta and Gamma",
+"Unit IV: area under and between curves, arc length",
+"Unit IV: surface area and volume of solids of revolution",
+"Unit V: partial derivatives, homogeneous functions, Euler’s theorem",
+"Unit V: total derivatives and implicit differentiation",
+"Unit VI: extrema of functions of two and three variables",
+"Unit VI: Lagrange’s method of undetermined multipliers",
+"Unit VII: separable, homogeneous and exact equations",
+"Unit VII: linear, Bernoulli and Riccati equations, first-order modeling",
+"Unit VIII: second-order homogeneous ODEs, Euler-Cauchy equation",
+"Unit VIII: existence and uniqueness, Wronskian, general solutions",
+"Unit VIII: non-homogeneous ODEs, undetermined coefficients, variation of parameters",
+"Revision: Units I to IV with timed problem sets",
+"Revision: Units V to VIII with timed problem sets",
+"Full mock exams and weak-topic repair"],
+phys:[
+"Unit I: free, damped and forced oscillation",
+"Unit I: compound and torsion pendulum, modulus of rigidity",
+"Unit II: wave motion, wave and particle velocity, stretched string",
+"Unit II: energy, power and intensity of waves, standing waves, sonometer",
+"Unit III: acoustics of buildings, reverberation, Sabine equation, noise control",
+"Unit III: ultrasonic waves, production, applications, non-destructive testing",
+"Unit IV: laser principles, population inversion, He-Ne and semiconductor lasers",
+"Unit IV: fiber optics, acceptance angle, numerical aperture, sensors",
+"Unit V: capacitors, charging and discharging",
+"Unit V: dielectrics, polarization, Gauss’s law in dielectrics, Clausius-Mossotti",
+"Unit VI: LC, damped and forced LCR oscillation, resonance, Q factor",
+"Unit VI: Maxwell’s equations, EM waves in free space and dielectric media",
+"Unit VII: matter waves, wave function, momentum and energy operators",
+"Unit VII: Schrödinger equations, electron in metal, infinite potential well",
+"Unit VIII: thermodynamic concepts, properties, processes, first law",
+"Unit VIII: second law, heat engines, refrigerators and heat pumps, COP",
+"Unit VIII: heat transfer: conduction, convection, radiation, black bodies",
+"Revision: Units I to IV numericals and past papers",
+"Revision: Units V to VIII numericals and past papers",
+"Full mock exams and weak-topic repair"],
+bee:[
+"Unit I: energy sources, generation/transmission/distribution, charge, EMF",
+"Unit I: Ohm’s law, resistivity, temperature dependence and coefficient",
+"Unit II: circuit concepts, independent/dependent sources, Kirchhoff’s laws, dividers",
+"Unit II: series/parallel circuits, star-delta and source transformation",
+"Unit II: nodal analysis (with dependent sources)",
+"Unit II: mesh analysis (with dependent sources)",
+"Unit III: superposition, reciprocity, Thevenin and Norton",
+"Unit III: maximum power transfer, Millman and Tellegen",
+"Unit IV: AC waveforms and terms, average and RMS values",
+"Unit IV: phasors (complex, polar, exponential)",
+"Unit V: Ampere’s law, B-H curve, reluctance, mmf, air-gap circuits",
+"Unit V: inductance, self and mutual, coupled coils, R-L circuits",
+"Unit VI: electric fields, capacitance, charging, series/parallel capacitors",
+"Unit VI: capacitive reactance, time-varying response, R-C circuits",
+"Unit VII: series/parallel RLC steady state, phasor representation",
+"Unit VII: real, reactive and apparent power, power factor and its improvement",
+"Unit VII: AC mesh/nodal, star-delta and network theorems in AC",
+"Unit VII: series/parallel resonance, bandwidth, Q factor",
+"Unit VIII: three-phase generation, phase sequence, star/delta, line vs phase",
+"Unit VIII: balanced/unbalanced loads, three-phase power",
+"Revision: Units I to IV with past papers",
+"Revision: Units V to VIII and full mock exams"]
+};
 
 /* ---------- state + storage ---------- */
 const KEY="mc-dual-track-v2",DEFT={wd:"12:00",we:"04:00"};
@@ -298,12 +358,12 @@ const isCheck=b=>b.kind==="sprint"||b.kind==="shut";
 const pre=()=>false; /* sessions can be done any time on the day, nothing is skipped at lock-in */
 const icon=b=>b.kind==="sprint"?(b.id[1]==="A"?"📖":"✏️"):b.id.startsWith("air")?"🍖":b.id==="shut"?"🛏️":b.id==="wake"?"⏰":"💧";
 function buildDay(date){
-  const wd=date.getDay(),we=wd===0||wd===6,plan=PLAN[wd],pe=S.diff==="peaceful";
-  const base=minOf((S.times||DEFT)[we?"we":"wd"]);
-  const dn=S.locked?Math.round((new Date(iso(date)+"T00:00")-new Date(S.start+"T00:00"))/864e5)+1:1;
-  const wk=Math.max(1,Math.min(12,Math.ceil(dn/7)));
-  const sp=(id,s,part)=>({id,kind:"sprint",min:45,title:"Sprint "+id+": "+SUBJ[s].n,c:SUBJ[s].c,b:SUBJ[s].b,task:TASK[s][part],topic:SUBJ[s].i>=0?WEEKS[wk-1][SUBJ[s].i]:""});
-  const rs=(id,min,title,task)=>({id,kind:"rest",min,title,task,c:"var(--dim)",b:"#aaaaaa",topic:""});
+  const wd=date.getDay(),plan=PLAN[wd],pe=S.diff==="peaceful";
+  if(!plan) return{L:[],end:0,plan:[],we:false,rest:true};
+  const sat=wd===6;
+  const base=minOf((S.times||DEFT)[sat?"we":"wd"]);
+  const sp=(id,s,part)=>({id,s,kind:"sprint",min:45,title:"Sprint "+id+": "+SUBJ[s].n,c:SUBJ[s].c,b:SUBJ[s].b,task:TASK[s][part]});
+  const rs=(id,min,title,task)=>({id,kind:"rest",min,title,task,c:"var(--dim)",b:"#aaaaaa"});
   const L=[];
   plan.forEach((s,i)=>{
     const n=i+1;
@@ -311,11 +371,11 @@ function buildDay(date){
     if(!pe) L.push(rs("r"+n,15,"Reset",i%2?"Quick physical stretch.":"Step away from the screen. Drink water."),sp(n+"B",s,1));
     if(i<plan.length-1) L.push(rs("air"+n,pe?30:60,"Airlock","Hard reset: meal, walk, zero study material."));
   });
-  L.push({id:"shut",kind:"shut",min:10,title:"Shutdown ritual",task:"Write 3 things you can now do. Log every miss. Pick tomorrow’s first problem.",c:"var(--ok)",b:"#7fff00",topic:""});
-  if(!we&&!pe&&base+L.reduce((a,b)=>a+b.min,0)>1080) L.forEach(b=>{if(b.id.startsWith("air"))b.min=30});
+  L.push({id:"shut",kind:"shut",min:10,title:"Shutdown ritual",task:"Write 3 things you can now do. Log every miss. Pick tomorrow’s first problem.",c:"var(--ok)",b:"#7fff00"});
+  if(!sat&&!pe&&base+L.reduce((a,b)=>a+b.min,0)>1080) L.forEach(b=>{if(b.id.startsWith("air"))b.min=30});
   let t=base;
   L.forEach(b=>{b.at=t;t+=b.min;b.end=t});
-  return{L,end:t,plan,we};
+  return{L,end:t,plan,we:sat};
 }
 function pending(d){
   const k=todayKey();
@@ -344,31 +404,57 @@ function streak(){
   if(!S.locked) return 0;
   let n=0;const d=new Date();
   for(let i=0;i<400&&iso(d)>=S.start;i++){
-    if(dayDone(d)) n++;else if(i>0) break;
+    if(!buildDay(d).rest){if(dayDone(d)) n++;else if(i>0) break}
     d.setDate(d.getDate()-1);
   }
   return n;
 }
+/* a subject's study day counts once every sprint of its shift that day is done; each topic takes TPD study days */
+function sdCount(upTo,inclusive){
+  const c={calc:0,phys:0,bee:0};
+  if(!S.locked) return c;
+  for(const d=new Date(S.start+"T00:00");inclusive?iso(d)<=upTo:iso(d)<upTo;d.setDate(d.getDate()+1)){
+    const k=iso(d),by={};
+    buildDay(d).L.filter(b=>b.kind==="sprint").forEach(b=>{(by[b.s]=by[b.s]||[]).push(!!S.done[k+"|"+b.id])});
+    for(const s in by) if(c[s]!==undefined&&by[s].every(Boolean)) c[s]++;
+  }
+  return c;
+}
 
 /* ---------- render ---------- */
 function render(){
-  const k=todayKey(),d=buildDay(new Date()),box=$("#schedule"),sk=streak(),nm=nowMin(),t=S.times||DEFT;
+  const k=todayKey(),d=buildDay(new Date()),box=$("#schedule"),sk=streak(),t=S.times||DEFT;
   $("#hearts").innerHTML=Array.from({length:10},(_,i)=>'<i class="'+(i<sk?"on":"")+'"></i>').join("");
   $("#hearts").title=sk+" day streak";
-  $("#runInfo").textContent=S.locked?"Day "+dayN()+" of 84, week "+curWeek()+", "+(S.diff==="peaceful"?"Peaceful":"Hardcore")+". Cleared "+Object.keys(S.done).length+", missed "+Object.keys(S.miss).length+".":"Creative mode: preview only";
+  $("#runInfo").textContent=S.locked?"Day "+dayN()+", "+(S.diff==="peaceful"?"Peaceful":"Hardcore")+". Cleared "+Object.keys(S.done).length+", missed "+Object.keys(S.miss).length+".":"Creative mode: preview only";
   $("#lockBtn").hidden=S.locked;
-  $("#lockNote").textContent=S.locked?"Locked in since "+new Date(S.start+"T00:00").toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"})+". Target start times are fixed: weekdays "+t.wd+", weekends "+t.we+".":"Sign the oath to make today Day 1 and fix your start times.";
+  $("#lockNote").textContent=S.locked?"Locked in since "+new Date(S.start+"T00:00").toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"})+". Target start times are fixed: study days "+t.wd+", Saturday "+t.we+".":"Sign the oath to make today Day 1 and fix your start times.";
   $("#modeTag").textContent=DAYS[new Date().getDay()];
+  renderMap();
+  if(d.rest){
+    $("#timer").hidden=true;$("#dayTags").innerHTML="";
+    box.innerHTML='<div class="off slot"><b class="px" style="font-size:.8rem;line-height:1.6">'+DAYS[new Date().getDay()].toUpperCase()+': REST DAY</b><p>'+NOTE[new Date().getDay()]+'</p></div>';
+    document.title="Dual-track sprint: Minecraft edition";
+    return;
+  }
+  $("#timer").hidden=false;
   $("#dayTags").innerHTML=d.plan.map((s,i)=>'<span class="tag" style="--c:'+SUBJ[s].c+'">Shift '+(i+1)+': '+SUBJ[s].n+'</span>').join("");
+  const cb=sdCount(k,false),nx=pending(d);
+  const topic=b=>{
+    const T=TOPICS[b.s];if(!T) return "";
+    const n=cb[b.s],i=Math.floor(n/TPD);
+    return i>=T.length?"All topics covered. Use this slot to review.":T[i]+" (day "+(n%TPD+1)+" of "+TPD+")";
+  };
   box.innerHTML=d.L.map(b=>{
-    const key=k+"|"+b.id,nx=pending(d);let cls,st;
+    const key=k+"|"+b.id;let cls,st;
     if(S.done[key]){cls="done";st='<div class="st ok">✔ DONE</div>'}
     else if(S.miss[key]){cls="miss";st='<div class="st" style="color:var(--red)">✘ MISSED</div>'}
     else if(S.run&&S.run.date===k&&S.run.id===b.id){cls="cur";st='<div class="st">IN SESSION</div>'}
     else if(S.locked&&nx&&nx.id===b.id){cls="cur";st='<div class="st">UP NEXT</div>'}
     else{cls="lock";st='<div class="st dim">🔒 LOCKED</div>'}
+    const tp=b.kind==="sprint"?topic(b):"";
     return '<div class="row slot '+cls+'" style="--c:'+b.c+'"><div class="ic">'+icon(b)+'</div>'+
-      '<div><strong>'+b.title+'</strong><span>'+b.task+'</span>'+(b.topic?'<em>This week: '+b.topic+'</em>':"")+'</div>'+
+      '<div><strong>'+b.title+'</strong><span>'+b.task+'</span>'+(tp?'<em>Topic: '+tp+'</em>':"")+'</div>'+
       '<div class="when">'+hm(b.at)+'<br>'+b.min+' min</div>'+st+'</div>';
   }).join("")+
   (d.we?'<div class="row slot lock" style="--c:var(--ok)"><div class="ic">🌤️</div><div><strong>The rest of the day is yours</strong><span>Shutdown is done. Eat, move, see people, or just rest.</span></div><div class="when">'+hm(d.end)+'</div><div></div></div>'
@@ -380,6 +466,7 @@ function fmt(s){s=Math.max(0,Math.ceil(s));const h=Math.floor(s/3600);return (h?
 function paint(){
   const d=buildDay(new Date()),b=$("#bMain"),r=S.run;
   b.hidden=true;
+  if(d.rest) return;
   if(r){
     const left=(r.end-Date.now())/1000,blk=d.L.find(x=>x.id===r.id&&r.date===todayKey());
     $("#clock").textContent=fmt(left);$("#barFill").style.width=Math.min(100,Math.max(0,(1-left/r.total)*100))+"%";
@@ -419,44 +506,41 @@ setInterval(()=>{
 $("#lockBtn").onclick=()=>ask({
   title:"THE OATH OF THE LOCKED RUN",
   body:'<p>Read this, then type <b>I AGREE</b>.</p><ol>'+
-    '<li>Today, <b>'+new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})+'</b>, becomes Day 1 of my 12-week run. I can’t change it.</li>'+
+    '<li>Today, <b>'+new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})+'</b>, becomes Day 1 of my run. I can’t change it.</li>'+
     '<li>Start times are targets, and they are fixed once I sign. I can do each session any time that day, in order. A session I haven’t finished when the day ends is marked missed automatically, and so is every session on a day I never open the app.</li>'+
     '<li>I can’t skip, pause or reset a session.</li>'+
     '<li>I study only the current track during its sprint and seal it when it ends.</li>'+
-    '<li>Weekends are full days with an early start. The rest of the day is mine once shutdown is done.</li>'+
+    '<li>Friday is a rest day. Saturday is the long day. Every other day is a normal study day.</li>'+
     '<li>A missed session breaks my streak.</li>'+
     '<li>I will export my save or connect cloud sync.</li></ol>'+
-    '<label style="display:block;margin-top:.5rem">Weekday start (Mon to Fri)<br><input type="time" id="mWd" value="'+DEFT.wd+'"></label>'+
-    '<label style="display:block;margin-top:.5rem">Weekend start (Sat and Sun). You wake at 04:00 and start right away.<br><input type="time" id="mWe" value="'+DEFT.we+'"></label>'+
-    '<label style="display:block;margin-top:.5rem">Difficulty<select id="mDiff"><option value="hardcore">Hardcore: full day, about 5 hours on weekdays</option><option value="peaceful">Peaceful: one sprint per shift</option></select></label>',
+    '<label style="display:block;margin-top:.5rem">Study-day start (Mon to Thu and Sun)<br><input type="time" id="mWd" value="'+DEFT.wd+'"></label>'+
+    '<label style="display:block;margin-top:.5rem">Saturday start. You wake at 04:00 and start right away.<br><input type="time" id="mWe" value="'+DEFT.we+'"></label>'+
+    '<label style="display:block;margin-top:.5rem">Difficulty<select id="mDiff"><option value="hardcore">Hardcore: full day, about 5 hours on study days</option><option value="peaceful">Peaceful: one sprint per shift</option></select></label>',
   phrase:"I AGREE",ok:"SIGN AND START DAY 1",
   onOk:()=>{
     const we=$("#mWe").value||DEFT.we;
     S=fresh();S.locked=true;S.start=todayKey();S.lockMin=Math.floor(nowMin());S.diff=$("#mDiff").value;
     S.times={wd:$("#mWd").value||DEFT.wd,we:we.length>=4&&minOf(we)>=60?we:DEFT.we};
-    S.log=$("#log").value;save();sfx("up");toast("Lock-in complete","Day 1 starts now. Do today’s sessions any time before midnight.");render();renderMap();
+    S.log=$("#log").value;save();sfx("up");toast("Lock-in complete","Day 1 starts now. Do today’s sessions any time before midnight.");render();
   }
 });
 
-/* ---------- weekly pairing + map ---------- */
+/* ---------- subjects by day + topic map ---------- */
 $("#weekGrid").innerHTML=[1,2,3,4,5,6,0].map(n=>{
   const p=PLAN[n];
-  return '<div class="day slot'+(n===new Date().getDay()?" today":"")+'"><b>'+DAYS[n].toUpperCase().slice(0,3)+(p?"":": OFF")+'</b>'+
-    (p?p.filter(Boolean).map((s,i)=>'<span class="tag" style="--c:'+SUBJ[s].c+'">'+(i+1)+'. '+SUBJ[s].k+'</span>').join(""):"")+'<p>'+NOTE[n]+'</p></div>';
+  return '<div class="day slot'+(n===new Date().getDay()?" today":"")+'"><b>'+DAYS[n].toUpperCase().slice(0,3)+(p?"":": REST")+'</b>'+
+    (p?p.map((s,i)=>'<span class="tag" style="--c:'+SUBJ[s].c+'">'+(i+1)+'. '+SUBJ[s].k+'</span>').join(""):"")+'<p>'+NOTE[n]+'</p></div>';
 }).join("");
-$("#weekBody").innerHTML=WEEKS.map((w,i)=>'<tr data-w="'+(i+1)+'"><td class="wk">'+pad(i+1)+'</td>'+
-  ["c1","c2","c3"].map((c,j)=>'<td class="'+c+'"><label><input type="checkbox" id="w'+(i+1)+"cpb"[j]+'"><span>'+w[j]+'</span></label></td>').join("")+'</tr>').join("");
-const boxes=[...document.querySelectorAll("#weekBody input")];
-boxes.forEach(b=>b.onchange=()=>{S.checks[b.id]=b.checked;save();sfx("ok");renderMap()});
 function renderMap(){
-  const wk=curWeek();let n=0;
-  boxes.forEach(b=>{
-    b.checked=!!S.checks[b.id];if(b.checked)n++;
-    b.disabled=!S.locked||+b.id.slice(1).replace(/\D+$/,"")>wk;
+  const c=sdCount(todayKey(),true);let done=0,total=0,html="";
+  ["calc","phys","bee"].forEach(s=>{
+    const T=TOPICS[s],dn=Math.min(Math.floor(c[s]/TPD),T.length),part=c[s]%TPD;
+    done+=dn;total+=T.length;
+    html+='<div class="tcol slot" style="--c:'+SUBJ[s].c+'"><h3>'+SUBJ[s].k.toUpperCase()+': '+dn+'/'+T.length+'</h3><ol>'+
+      T.map((t,i)=>'<li class="'+(i<dn?"d":i===dn?"c":"")+'"><span>'+(i<dn?"✔":i===dn?"▶":"·")+'</span><span>'+t+(i===dn&&S.locked?" (day "+(part+1)+" of "+TPD+")":"")+'</span></li>').join("")+'</ol></div>';
   });
-  document.querySelectorAll("#weekBody tr").forEach(r=>r.classList.toggle("cur",S.locked&&+r.dataset.w===wk));
-  $("#lvl").textContent=n;$("#xpFill").style.width=(n/boxes.length*100)+"%";
-  $("#mapNote").textContent=S.locked?n+" of 36 checkpoints cleared. Weeks unlock by date: you can tick up to week "+wk+".":"Lock in to unlock checkpoints. Weeks then unlock by date, one every 7 days.";
+  $("#topics").innerHTML=html;$("#lvl").textContent=done;$("#xpFill").style.width=(done/total*100)+"%";
+  $("#mapNote").textContent=S.locked?"Each topic takes "+TPD+" study days. Finish both and the next topic unlocks by itself. There are no weeks and nothing to tick by hand.":"Lock in to start moving through the topics.";
 }
 
 /* ---------- save file ---------- */
@@ -480,7 +564,7 @@ function load(txt){
     onOk:()=>{
       S=Object.assign(fresh(),o.state);
       if(o.cloud&&o.cloud.url){C=Object.assign({url:"",code:""},o.cloud);try{localStorage.setItem("mc-cloud",JSON.stringify(C))}catch(e){}$("#cUrl").value=C.url;$("#cCode").value=C.code||""}
-      save();sfx("up");toast("Save loaded",S.locked?"Day "+dayN()+" of 84.":"No active run in this save.");
+      save();sfx("up");toast("Save loaded",S.locked?"Day "+dayN()+".":"No active run in this save.");
       $("#log").value=S.log||"";lastExp();render();renderMap();sweep();
     }});
 }
@@ -490,7 +574,7 @@ $("#abandon").onclick=()=>ask({title:"ABANDON THIS WORLD?",body:"<p>All progress
   onOk:()=>{S=fresh();save();$("#log").value="";$("#jsonBox").value="";lastExp();toast("World erased","Creative mode again.");render();renderMap()}});
 
 /* ---------- cloud sync: Firebase Realtime Database over plain REST ---------- */
-const CLOUD_URL="",CLOUD_CODE=""; /* optional: fill these in before deploying to skip the setup fields */
+const CLOUD_URL="https://sprint-tracker-7b5d8-default-rtdb.asia-southeast1.firebasedatabase.app",CLOUD_CODE=""; /* optional: fill these in before deploying to skip the setup fields */
 let C={url:CLOUD_URL,code:CLOUD_CODE};
 try{Object.assign(C,JSON.parse(localStorage.getItem("mc-cloud")||"{}"))}catch(e){}
 const cOn=()=>!!(C.url&&C.code);
@@ -511,7 +595,7 @@ async function syncNow(){
       const keep=S.log;S=Object.assign(fresh(),o.state);S.updated=o.updated;
       try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
       $("#log").value=S.log||keep||"";lastExp();render();renderMap();sweep();
-      toast("Restored from cloud",S.locked?"Day "+dayN()+" of 84.":"Cloud save loaded.");cMsg("Cloud: restored at "+new Date().toLocaleTimeString()+".");
+      toast("Restored from cloud",S.locked?"Day "+dayN()+".":"Cloud save loaded.");cMsg("Cloud: restored at "+new Date().toLocaleTimeString()+".");
     }else await push();
   }catch(e){cMsg("Cloud: can’t reach the database.")}
 }
